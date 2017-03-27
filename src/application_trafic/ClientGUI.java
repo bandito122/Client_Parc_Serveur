@@ -25,6 +25,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  *
@@ -190,13 +192,15 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
         Login_Bouton = new javax.swing.JButton();
         jLabel16 = new javax.swing.JLabel();
         jSeparator4 = new javax.swing.JSeparator();
+        jButton3 = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         Graph_CB = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
-        Appareil_CB = new javax.swing.JComboBox();
-        jButton1 = new javax.swing.JButton();
+        TABLES_CB = new javax.swing.JComboBox();
+        jLabel3 = new javax.swing.JLabel();
+        jSpinner1 = new javax.swing.JSpinner();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Client CheckIn");
@@ -304,7 +308,7 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
             }
         });
 
-        Login_Bouton.setText("get long term key");
+        Login_Bouton.setText("Get Long Term Key from SK");
         Login_Bouton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Login_BoutonActionPerformed(evt);
@@ -314,6 +318,8 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
         jLabel16.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jLabel16.setText("Connexion au serveur.");
 
+        jButton3.setText("Get Session Key from KDC_Kerberos");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -321,16 +327,12 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jSeparator4)
+                    .addComponent(jSeparator4, javax.swing.GroupLayout.DEFAULT_SIZE, 924, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(104, 104, 104)
                         .addComponent(jLabel16)
                         .addGap(256, 256, 256)))
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(Login_Bouton)
-                .addGap(93, 93, 93))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(41, 41, 41)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -341,6 +343,15 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
                     .addComponent(TF_password)
                     .addComponent(TF_user, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jButton3)
+                        .addGap(90, 90, 90))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(Login_Bouton)
+                        .addGap(118, 118, 118))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -357,9 +368,11 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel7)
                     .addComponent(TF_password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 213, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 160, Short.MAX_VALUE)
                 .addComponent(Login_Bouton)
-                .addGap(19, 19, 19))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton3)
+                .addGap(37, 37, 37))
         );
 
         Tabs.addTab("Login", jPanel1);
@@ -373,18 +386,16 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
 
         jLabel1.setText("Graphique : ");
 
-        Graph_CB.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "HISTOGRAMME", "SECTORIEL", "LINEAIRE" }));
+        Graph_CB.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "HISTOGRAMME", "SECTORIEL", "LINEAIRE", "NUAGE" }));
 
         jLabel2.setText("Type : ");
 
-        Appareil_CB.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "APPAREILS" }));
+        TABLES_CB.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "APPAREILS", "PERSONNEL" }));
 
-        jButton1.setText("Remove graph");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jLabel3.setText("Echantillon : ");
+
+        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(8, 1, 100, 1));
+        jSpinner1.setValue(10);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -394,16 +405,15 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addGap(2, 2, 2)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(jButton1))
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(Graph_CB, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Appareil_CB, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Graph_CB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(702, Short.MAX_VALUE))
+                    .addComponent(TABLES_CB, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jSpinner1))
+                .addContainerGap(692, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -412,15 +422,17 @@ public class ClientGUI extends javax.swing.JFrame implements IDISMAP
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(Graph_CB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(22, 22, 22)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Appareil_CB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
                 .addGap(18, 18, 18)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(TABLES_CB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(20, 20, 20)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(31, 31, 31)
                 .addComponent(jButton2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
-                .addContainerGap(197, Short.MAX_VALUE))
+                .addContainerGap(183, Short.MAX_VALUE))
         );
 
         Tabs.addTab("Graph", jPanel5);
@@ -504,8 +516,9 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         Vector VList = new Vector();
 
         // Ajout du type des données (typeappareil, appareil,...)
-        VList.add(Appareil_CB.getSelectedItem()); // la table sur laquelle faire des stats
+        VList.add(TABLES_CB.getSelectedItem()); // la table sur laquelle faire des stats
         VList.add(Graph_CB.getSelectedItem());    // le genre de graphique à générerer
+        VList.add(jSpinner1.getValue());
         System.out.println("VLIST = " + VList);
         // Créer la requête
         RequestDISMAP req = new RequestDISMAP(GRAPH_OPERATION, VList);
@@ -532,66 +545,131 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             switch (Graph_CB.getSelectedItem().toString())
             {
                 case "HISTOGRAMME": // Histogramme
-
-                                    DefaultCategoryDataset dcd = new DefaultCategoryDataset();
-                                    Vector data = (Vector) rep.getChargeUtile();
-                                    int indice = 0;
-                                    for(int i=0;i<data.size();i++)
+                                    
+                                    if(TABLES_CB.getSelectedItem() == "APPAREILS")
                                     {
-                                        System.out.println("MOIS = " + mois.get(Integer.valueOf(data.get(i).toString())).toString());
-                                        dcd.addValue(Integer.valueOf(data.get(i+1).toString()), "JOURS", mois.get(Integer.valueOf(data.get(i).toString())).toString());
-                                        i++;
-                                    }
-                                    System.out.println("donnees pour HISTROGRAMME = " + data);
+                                        DefaultCategoryDataset dcd = new DefaultCategoryDataset();
+                                        Vector data = (Vector) rep.getChargeUtile();
+                                        int indice = 0;
+                                        for(int i=0;i<data.size();i++)
+                                        {
+                                            System.out.println("MOIS = " + mois.get(Integer.valueOf(data.get(i).toString())).toString());
+                                            dcd.addValue(Integer.valueOf(data.get(i+1).toString()), "JOURS", mois.get(Integer.valueOf(data.get(i).toString())).toString());
+                                            i++;
+                                        }
+                                        System.out.println("donnees pour HISTROGRAMME = " + data);
 
-                                    chart = ChartFactory.createBarChart("Bar char", "Mois", "Chiffre d'affaire (en euros)", dcd, PlotOrientation.VERTICAL, true, true, false);
-                                    //this.jPanel5.setLayout(new java.awt.BorderLayout());
-                                    cp = new ChartPanel(chart);
-                                    this.getContentPane().add(cp);
-                                    this.jPanel5.add(cp, BorderLayout.EAST);
+                                        chart = ChartFactory.createBarChart("Bar char", "Mois", "Chiffre d'affaire (en euros)", dcd, PlotOrientation.VERTICAL, true, true, false);
+                                        //this.jPanel5.setLayout(new java.awt.BorderLayout());
+                                        cp = new ChartPanel(chart);
+                                        this.getContentPane().add(cp);
+                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                    }
+                                    else if (TABLES_CB.getSelectedItem() == "PERSONNEL")
+                                    {
+                                        DefaultCategoryDataset dcd = new DefaultCategoryDataset();
+                                        Vector data = (Vector) rep.getChargeUtile();
+                                        int indice = 0;
+                                        for(int i=0;i<data.size();i++)
+                                        {
+                                            
+                                            dcd.addValue((int)data.get(i+1), "AGE", data.get(i).toString());
+                                            i++;
+                                        }
+                                        System.out.println("donnees pour HISTROGRAMME = " + data);
+
+                                        chart = ChartFactory.createBarChart("Nombres de personnes par classes d'ages(echantillon="+jSpinner1.getValue(), "Classe d'âge", "Nb de ", dcd, PlotOrientation.VERTICAL, true, true, false);
+                                        //this.jPanel5.setLayout(new java.awt.BorderLayout());
+                                        cp = new ChartPanel(chart);
+                                        this.getContentPane().add(cp);
+                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                    }
                                     break;
                 case "LINEAIRE": // Linéaire
-
-                                    DefaultCategoryDataset dcdl = new DefaultCategoryDataset();
-                                    Vector dataL = (Vector) rep.getChargeUtile();
-                                    for(int i=0;i<dataL.size();i++)
+                                    if(TABLES_CB.getSelectedItem() == "APPAREILS")
                                     {
-                                        System.out.println("MOIS = " + mois.get(Integer.valueOf(dataL.get(i).toString())).toString());
-                                        dcdl.addValue(Integer.valueOf(dataL.get(i+1).toString()), "JOURS", mois.get(Integer.valueOf(dataL.get(i).toString())).toString());
-                                        i++;
-                                    }
-                                    System.out.println("donnees pour HISTROGRAMME = " + dataL);
+                                        DefaultCategoryDataset dcdl = new DefaultCategoryDataset();
+                                        Vector dataL = (Vector) rep.getChargeUtile();
+                                        for(int i=0;i<dataL.size();i++)
+                                        {
+                                            System.out.println("MOIS = " + mois.get(Integer.valueOf(dataL.get(i).toString())).toString());
+                                            dcdl.addValue(Integer.valueOf(dataL.get(i+1).toString()), "JOURS", mois.get(Integer.valueOf(dataL.get(i).toString())).toString());
+                                            i++;
+                                        }
+                                        System.out.println("donnees pour HISTROGRAMME = " + dataL);
 
-                                    chart = ChartFactory.createLineChart("Graphique linéaire", "Mois", "Chiffre d'affaire (en euros)", dcdl, PlotOrientation.VERTICAL, true, true, false);
-                                    //this.jPanel5.setLayout(new java.awt.BorderLayout());
-                                    cp = new ChartPanel(chart);
-                                    this.getContentPane().add(cp);
-                                    this.jPanel5.add(cp, BorderLayout.EAST);
+                                        chart = ChartFactory.createLineChart("Graphique linéaire", "Mois", "Chiffre d'affaire (en euros)", dcdl, PlotOrientation.VERTICAL, true, true, false);
+                                        //this.jPanel5.setLayout(new java.awt.BorderLayout());
+                                        cp = new ChartPanel(chart);
+                                        this.getContentPane().add(cp);
+                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                    }
                                     break;
 
-                case "SECTORIEL" : // Sectoriel : repartition des types d'appareils existants en % (combien d'APE blanc par rapport à AGE noir par exemple)
-                                    DefaultPieDataset ds = new DefaultPieDataset();
-                                    // Récupérer les données
-
-                                    Vector donnees = (Vector) rep.getChargeUtile();
-                                    System.out.println("donnees pour SECTORIEL = " + donnees);
-                                    for(int i=0 ; i< donnees.size();i++)
+                case "SECTORIEL" : 
+                                    if(TABLES_CB.getSelectedItem() == "APPAREILS")
                                     {
-                                        //récupérer nom appareil
-                                        String TypeName = donnees.get(i).toString();
-                                        i++;
-                                        double nbAppareil = (double)donnees.get(i);
-                                        ds.setValue(TypeName, nbAppareil);
+                                        // Sectoriel : repartition des types d'appareils existants en % (combien d'APE blanc par rapport à AGE noir par exemple)
+                                        DefaultPieDataset ds = new DefaultPieDataset();
+                                        // Récupérer les données
+
+                                        Vector donnees = (Vector) rep.getChargeUtile();
+                                        System.out.println("donnees pour SECTORIEL = " + donnees);
+                                        
+                                        //compter le nombre d'appareil pour l'affichage en %
+                                        double nbAppareiltotal=0;
+                                        for(int i=0 ; i< donnees.size();i++)
+                                        {
+                                            //récupérer nom appareil
+                                            String TypeName = donnees.get(i).toString();
+                                            i++;
+                                            nbAppareiltotal =nbAppareiltotal + (double)donnees.get(i);
+                                        }
+                                        System.out.println("Nb appareil vendu total : " + nbAppareiltotal);
+                                        
+                                        for(int i=0 ; i< donnees.size();i++)
+                                        {
+                                            //récupérer nom appareil
+                                            String TypeName = donnees.get(i).toString();
+                                            i++;
+                                            double nbAppareil = (double)donnees.get(i);
+                                            double pourCent = (nbAppareil/nbAppareiltotal)*100;
+                                            ds.setValue(TypeName, pourCent);
+                                        }
+
+                                        //Se fournir un JFreeChart
+                                        chart = ChartFactory.createPieChart ("Répartitions des types d'appareils", ds, true, true, true);
+                                        cp = new ChartPanel(chart);
+
+                                        this.jPanel5.add(cp, BorderLayout.EAST);
                                     }
+                                    break;
+                case "NUAGE"   :
+                                    System.out.println("Graphique nuage de points...");
+                                    if(TABLES_CB.getSelectedItem() == "PERSONNEL")
+                                    {
 
-                                    //Se fournir un JFreeChart
-                                    chart = ChartFactory.createPieChart ("Répartitions des types d'appareils", ds, true, true, true);
-                                    cp = new ChartPanel(chart);
+                                        Vector donnees = (Vector) rep.getChargeUtile();
+                                        System.out.println("donnees pour NUAGES = " + donnees);
+                                        XYSeries serieObs = new XYSeries("Relation vision-dextérité");
+                                        
+                                        for(int i=0 ; i< donnees.size();i=i+2)
+                                        {
+                                            serieObs.add((double)donnees.get(i),(double)donnees.get(i+1)); //xi,yi
+                                        }
+                                        XYSeriesCollection dsxy = new XYSeriesCollection();
+                                        dsxy.addSeries(serieObs);
+                                        //Se fournir un JFreeChart
+                                        chart = ChartFactory.createScatterPlot ("Perception + dextérité manuelle", "réponse à un stimulus visuel", "dextérité manuelle",dsxy,PlotOrientation.VERTICAL ,true, true,false);
+                                        cp = new ChartPanel(chart);
 
-                                    this.jPanel5.add(cp, BorderLayout.EAST);
+                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                    }
+                                    
                                     break;
 
             }
+            System.out.println("JE quitte le case...");
          
         }
         else
@@ -602,11 +680,6 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             JOptionPane.showMessageDialog(this, "Aucune données..., désolé... !", "Client CheckIn", JOptionPane.ERROR_MESSAGE, null);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        this.jPanel5.remove(cp);
-            this.jPanel5.revalidate();
-    }//GEN-LAST:event_jButton1ActionPerformed
 
    
 
@@ -736,7 +809,6 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox Appareil_CB;
     private javax.swing.JButton Connect_Bouton;
     private javax.swing.JButton Deconnect_Bouton;
     private javax.swing.JComboBox Graph_CB;
@@ -745,22 +817,25 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     private javax.swing.JButton Login_Bouton;
     private javax.swing.JTextField Port_TextField;
     private javax.swing.JTextField Serveur_TextField;
+    private javax.swing.JComboBox TABLES_CB;
     private javax.swing.JTextField TF_password;
     private javax.swing.JTextField TF_user;
     private javax.swing.JPanel TabConnexion;
     private javax.swing.JTabbedPane Tabs;
     private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSpinner jSpinner1;
     // End of variables declaration//GEN-END:variables
 }
