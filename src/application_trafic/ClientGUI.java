@@ -1,17 +1,43 @@
 package application_trafic;
 
 import GestionSocket.GestionSocket;
+import JFC.Histogramme;
+import JFC.Lineaire;
+import JFC.NuagePoint;
+import JFC.PieChart;
+import JavaLibrary.Crypto.Chiffrement;
+import JavaLibrary.Crypto.Cle;
+import JavaLibrary.Crypto.CleImpl.CleDES;
+import JavaLibrary.Crypto.CryptoManager;
+import JavaLibrary.Crypto.DiffieHellman.DiffieHellman;
+import JavaLibrary.Crypto.SecurePassword.SecurePasswordSha256;
+import JavaLibrary.Network.CipherGestionSocket;
+import JavaLibrary.Network.NetworkPacket;
 import RequestResponseDISMAP.IDISMAP;
 import RequestResponseDISMAP.RequestDISMAP;
 import RequestResponseDISMAP.ResponseDISMAP;
+import Serializator.KeySerializator;
+import ServeurCle.SC_CST;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.io.IOException;
+import java.net.Socket;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.SecretKey;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -19,6 +45,7 @@ import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import main.Exemple_ClientCle;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -34,12 +61,20 @@ import org.jfree.data.xy.XYSeriesCollection;
  */
 public class ClientGUI extends javax.swing.JFrame implements IDISMAP 
 {
-
+    public static String HOST="localhost";
+    public static int PORT=6001;
+    public static String KEY_TYPE="DES";
+    public static String USERNAME="julien";
+    public static String PWD="test";
+    public static String SAVING_DIR=System.getProperty("user.home")+
+            System.getProperty("file.separator")+"client_cle"+
+            System.getProperty("file.separator")+"exemple_cle.key";
     private boolean connect = false;
     private GestionSocket GSocket = null;
     //DefaultCategoryDataset ds;
     ChartPanel cp ;
     JFreeChart chart;
+    JPanel graph_JP = new JPanel() ; 
 
     /**
      * Creates new form ClientGUI
@@ -467,23 +502,87 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     }//GEN-LAST:event_BT_verifierActionPerformed
 
     private void Login_BoutonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Login_BoutonActionPerformed
-        //Récupération des informations
-
-        Vector vLogin = new Vector();
-        vLogin.add(TF_user.getText());
-        vLogin.add(TF_password.getText());
-
-        RequestDISMAP req = new RequestDISMAP(LOGIN_REQUEST, vLogin);
-        GSocket.Send(req);
-        System.out.println("Apres la requete");
-        //Attente de reponse du serveur
-        RequestDISMAP rep = (RequestDISMAP) GSocket.Receive();
-        System.out.println("Apres la réponse du serveur");
-
-        if (rep.getCodeRetour() == YES) {
-            JOptionPane.showMessageDialog(this, "Login réalisée avec succès !", "Client CheckIn", JOptionPane.INFORMATION_MESSAGE, null);
-        } else {
-            JOptionPane.showMessageDialog(this, "Login échouée !", "Client CheckIn", JOptionPane.ERROR_MESSAGE, null);
+       try {
+            SecurePasswordSha256 sp=new SecurePasswordSha256(PWD);
+            
+            //SC doit écouter sur le port 6001
+            Socket s=new Socket(HOST, PORT);
+            System.out.println("[CLIENT] connected to server: sending Init ");
+            DiffieHellman dh=new DiffieHellman();
+            GestionSocket gsocket=new GestionSocket(s);
+            
+            //envoit demande de DiffieHellman avec sa partie publique
+            NetworkPacket r=new NetworkPacket(SC_CST.INIT);
+            r.add(SC_CST.USERNAME,USERNAME);
+            r.add(SC_CST.SALT, sp.getSalt());
+            r.add(SC_CST.PWD, sp.getHashedPassword());
+            gsocket.Send(r);
+            
+            r=(NetworkPacket) gsocket.Receive();
+            if(r.getType()==SC_CST.YES) {
+                System.out.printf("[CLIENT]User %s is connected\n", USERNAME);
+            } else {
+                System.out.printf("[CLIENT]User %s is NOT connected\n",USERNAME);
+            }
+            
+            //envoi sa clé publique
+            System.out.println("[CLIENT]Sending public key");
+            r=new NetworkPacket(SC_CST.DHPK);
+            r.add(SC_CST.PK, dh.getPublicKey().getEncoded());
+            gsocket.Send(r);
+            System.out.println("[CLIENT]Server public key received");
+            
+            //lit la partie publique du serveur
+            r=(NetworkPacket) gsocket.Receive();
+            if(r.getType()==SC_CST.YES) {
+                byte[] serverPK=(byte[]) r.get(SC_CST.PK);
+                dh.setPublicKey(serverPK);
+            } else {
+                //erreur
+                System.out.printf("ERROR: received %d type!\n",r.getType());
+                System.exit(-1);
+            }
+            
+            //la DJH est fait: faut demander la clé Long Terme du serveur AS
+            Chiffrement chDHKey=(Chiffrement) CryptoManager.newInstance("DES");
+            chDHKey.init(new CleDES(dh.getSecretKey()));
+            //grâce à CipherGestionSocket la transition entre flux chiffré ou non se fait
+            //simplement via un changement de type de GestionSocket
+            CipherGestionSocket ciphergs=new CipherGestionSocket(s, chDHKey);
+            System.out.println("[CLIENT]Sending Get KEY ");
+            r=new NetworkPacket(SC_CST.GETKEY);
+            r.add(SC_CST.USERNAME, USERNAME);
+            ciphergs.Send(r);
+            
+            //recevoir la clé
+            r=(NetworkPacket) ciphergs.Receive();
+            System.out.println("[CLIENT]Answer received");
+            if(r.getType()==SC_CST.YES) 
+            {
+                System.out.println("[CLIENT]Answer is yes");
+                //récupère la clé & la sauvegarde dans SAVING_DIR
+                Cle cle=(Cle) r.get(SC_CST.SECRETKEY);
+                KeySerializator.saveKey(SAVING_DIR, cle);
+                
+                //test à comparer avec le serveur_clé
+                Chiffrement chLongTermKey=(Chiffrement) CryptoManager.newInstance("DES");
+                chLongTermKey.init(cle);
+                String ciphertext=chLongTermKey.crypte("Test nananan");
+                System.out.printf("texte chiffré: %s\n", Arrays.toString(ciphertext.getBytes()));
+                String plainText=chLongTermKey.decrypte(ciphertext);
+                System.out.printf("text déchiffré: %s\n", Arrays.toString(plainText.getBytes()));
+                System.out.printf("text déchiffré: %s\n", plainText);
+            } else {
+                System.out.println("[CLIENT]Answer is no");
+                System.out.printf("ERROR: received %d type!\n",r.getType());
+            }
+        } catch (IOException | InvalidParameterSpecException | NoSuchAlgorithmException | 
+                InvalidAlgorithmParameterException | NoSuchProviderException | 
+                InvalidKeySpecException | InvalidKeyException ex) {
+            Logger.getLogger(Exemple_ClientCle.class.getName()).log(Level.SEVERE, null, ex);
+        } catch(Exception e) {
+            System.out.printf("[CLIENT]EXCEPTION: %s: %s\n",e.getClass(), e.getMessage());
+            Logger.getLogger(Exemple_ClientCle.class.getName()).log(Level.SEVERE, null, e);
         }
     }//GEN-LAST:event_Login_BoutonActionPerformed
 
@@ -514,7 +613,9 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         Vector VList = new Vector();
-
+        List<Double> donnees = new ArrayList<>();
+        List<String> listCategorie = new ArrayList<>();
+        List<String> listSerie = new ArrayList<>();
         // Ajout du type des données (typeappareil, appareil,...)
         VList.add(TABLES_CB.getSelectedItem()); // la table sur laquelle faire des stats
         VList.add(Graph_CB.getSelectedItem());    // le genre de graphique à générerer
@@ -534,75 +635,91 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             //supprimer le graphique si déjà présent
 
-                this.jPanel5.remove(cp);
+                this.jPanel5.remove(graph_JP);
                 this.jPanel5.revalidate();
                 this.repaint();
                 System.out.println("Il y avait déjà un graphique affiché... Je supprime...");
 
             
-            Vector mois = new Vector<String>(Arrays.asList("JANVIER", "FEVRIER", "MARS","AVRIL","MAI","JUIN","JUILLET","AOUT","SEPTEMBRE","OCTOBRE","NOVEMBRE","DECEMBRE"));
+            List<String> mois = new ArrayList<>(Arrays.asList("JANVIER", "FEVRIER", "MARS","AVRIL","MAI","JUIN","JUILLET","AOUT","SEPTEMBRE","OCTOBRE","NOVEMBRE","DECEMBRE"));
                                     
             switch (Graph_CB.getSelectedItem().toString())
             {
                 case "HISTOGRAMME": // Histogramme
-                                    
+ 
                                     if(TABLES_CB.getSelectedItem() == "APPAREILS")
                                     {
-                                        DefaultCategoryDataset dcd = new DefaultCategoryDataset();
+                                       
                                         Vector data = (Vector) rep.getChargeUtile();
-                                        int indice = 0;
+                                        listSerie.add("0"); // il n'y a qu'une série par catégorie
+                                        
+                                        
+                                        //Construire les listes suivant la réponse du serveur. Les listes servant à la classe Histogramme.
                                         for(int i=0;i<data.size();i++)
                                         {
-                                            System.out.println("MOIS = " + mois.get(Integer.valueOf(data.get(i).toString())).toString());
-                                            dcd.addValue(Integer.valueOf(data.get(i+1).toString()), "JOURS", mois.get(Integer.valueOf(data.get(i).toString())).toString());
+                                            //création de la liste des catégories
+                                            listCategorie.add(mois.get(Integer.valueOf(data.get(i).toString())-1));
+                                            System.out.println("MOIS = " + mois.get(Integer.valueOf(data.get(i).toString())));
+                                            //creation des données
+                                            donnees.add(Double.valueOf(data.get(i+1).toString()));
                                             i++;
                                         }
-                                        System.out.println("donnees pour HISTROGRAMME = " + data);
 
-                                        chart = ChartFactory.createBarChart("Bar char", "Mois", "Chiffre d'affaire (en euros)", dcd, PlotOrientation.VERTICAL, true, true, false);
-                                        //this.jPanel5.setLayout(new java.awt.BorderLayout());
-                                        cp = new ChartPanel(chart);
-                                        this.getContentPane().add(cp);
-                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                        Histogramme g = new Histogramme("Bar char", "Mois", "Chiffre d'affaire (en euros)", donnees, Color.white, listSerie, listCategorie, true);
+                                        graph_JP = g;
+                                        this.jPanel5.add(graph_JP,BorderLayout.EAST);
+                                      
                                     }
                                     else if (TABLES_CB.getSelectedItem() == "PERSONNEL")
                                     {
+                                        //10-20 2 
                                         DefaultCategoryDataset dcd = new DefaultCategoryDataset();
                                         Vector data = (Vector) rep.getChargeUtile();
-                                        int indice = 0;
+                                        listSerie.add("0"); // il n'y a qu'une série par catégorie
                                         for(int i=0;i<data.size();i++)
                                         {
-                                            
-                                            dcd.addValue((int)data.get(i+1), "AGE", data.get(i).toString());
+                                            listCategorie.add(data.get(i).toString());
+                                            donnees.add((double)((Integer)data.get(i+1)).intValue());
+                                            //dcd.addValue((int)data.get(i+1), "AGE", data.get(i).toString());
                                             i++;
                                         }
-                                        System.out.println("donnees pour HISTROGRAMME = " + data);
-
-                                        chart = ChartFactory.createBarChart("Nombres de personnes par classes d'ages(echantillon="+jSpinner1.getValue(), "Classe d'âge", "Nb de ", dcd, PlotOrientation.VERTICAL, true, true, false);
+                                      System.out.println("donnees pour HISTROGRAMME = " + data);
+                                        
+                                        Histogramme g = new Histogramme("Nombres de personnes par classes d'ages(echantillon="+jSpinner1.getValue(), "Classe d'âge", "Nb de ", donnees, Color.white, listSerie, listCategorie, true);
+                                        graph_JP=g;
+                                        this.jPanel5.add(graph_JP,BorderLayout.EAST);
+                                        //chart = ChartFactory.createBarChart("Nombres de personnes par classes d'ages(echantillon="+jSpinner1.getValue(), "Classe d'âge", "Nb de ", dcd, PlotOrientation.VERTICAL, true, true, false);
                                         //this.jPanel5.setLayout(new java.awt.BorderLayout());
-                                        cp = new ChartPanel(chart);
-                                        this.getContentPane().add(cp);
-                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                        //cp = new ChartPanel(chart);
+                                        //this.getContentPane().add(cp);
+                                        
+                                        
                                     }
                                     break;
                 case "LINEAIRE": // Linéaire
+                                  
                                     if(TABLES_CB.getSelectedItem() == "APPAREILS")
                                     {
                                         DefaultCategoryDataset dcdl = new DefaultCategoryDataset();
                                         Vector dataL = (Vector) rep.getChargeUtile();
+                                        listSerie.add("0");
                                         for(int i=0;i<dataL.size();i++)
                                         {
-                                            System.out.println("MOIS = " + mois.get(Integer.valueOf(dataL.get(i).toString())).toString());
-                                            dcdl.addValue(Integer.valueOf(dataL.get(i+1).toString()), "JOURS", mois.get(Integer.valueOf(dataL.get(i).toString())).toString());
+                                            System.out.println("MOIS = " + mois.get(Integer.valueOf(dataL.get(i).toString())));
+                                            donnees.add((double)Integer.parseInt(dataL.get(i+1).toString()));
+                                            listCategorie.add(mois.get(Integer.valueOf(dataL.get(i).toString())));
+                                            //dcdl.addValue(Integer.valueOf(dataL.get(i+1).toString()), "JOURS", mois.get(Integer.valueOf(dataL.get(i).toString())).toString());
                                             i++;
                                         }
                                         System.out.println("donnees pour HISTROGRAMME = " + dataL);
-
-                                        chart = ChartFactory.createLineChart("Graphique linéaire", "Mois", "Chiffre d'affaire (en euros)", dcdl, PlotOrientation.VERTICAL, true, true, false);
-                                        //this.jPanel5.setLayout(new java.awt.BorderLayout());
-                                        cp = new ChartPanel(chart);
-                                        this.getContentPane().add(cp);
-                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                        Lineaire line  = new Lineaire("Graphique linéaire", "Mois", "Chiffre d'affaire (en euros)", donnees, Color.white, listSerie, listCategorie, true);
+                                        graph_JP=line;
+                                        this.jPanel5.add(graph_JP,BorderLayout.EAST);
+//                                        chart = ChartFactory.createLineChart("Graphique linéaire", "Mois", "Chiffre d'affaire (en euros)", dcdl, PlotOrientation.VERTICAL, true, true, false);
+//                                        this.jPanel5.setLayout(new java.awt.BorderLayout());
+//                                        cp = new ChartPanel(chart);
+//                                        //this.getContentPane().add(cp);
+//                                        this.jPanel5.add(cp, BorderLayout.EAST);
                                     }
                                     break;
 
@@ -613,35 +730,39 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
                                         DefaultPieDataset ds = new DefaultPieDataset();
                                         // Récupérer les données
 
-                                        Vector donnees = (Vector) rep.getChargeUtile();
-                                        System.out.println("donnees pour SECTORIEL = " + donnees);
+                                        Vector data = (Vector) rep.getChargeUtile();
+                                        System.out.println("donnees pour SECTORIEL = " + data);
                                         
                                         //compter le nombre d'appareil pour l'affichage en %
                                         double nbAppareiltotal=0;
-                                        for(int i=0 ; i< donnees.size();i++)
+                                        for(int i=0 ; i< data.size();i++)
                                         {
-                                            //récupérer nom appareil
-                                            String TypeName = donnees.get(i).toString();
                                             i++;
-                                            nbAppareiltotal =nbAppareiltotal + (double)donnees.get(i);
+                                            nbAppareiltotal =nbAppareiltotal + (double)data.get(i);
                                         }
                                         System.out.println("Nb appareil vendu total : " + nbAppareiltotal);
                                         
-                                        for(int i=0 ; i< donnees.size();i++)
+                                        
+                                        for(int i=0 ; i< data.size();i++)
                                         {
                                             //récupérer nom appareil
-                                            String TypeName = donnees.get(i).toString();
+                                            String TypeName = data.get(i).toString();
                                             i++;
-                                            double nbAppareil = (double)donnees.get(i);
+                                            
+                                            double nbAppareil = (double)data.get(i);
                                             double pourCent = (nbAppareil/nbAppareiltotal)*100;
-                                            ds.setValue(TypeName, pourCent);
+                                            listCategorie.add(TypeName);
+                                            donnees.add(pourCent);
+                                            //ds.setValue(TypeName, pourCent);
                                         }
-
+                                        PieChart line  = new PieChart("Graphique linéaire", donnees, listCategorie, true);
+                                        graph_JP=line;
+                                        this.jPanel5.add(graph_JP,BorderLayout.EAST);    
                                         //Se fournir un JFreeChart
-                                        chart = ChartFactory.createPieChart ("Répartitions des types d'appareils", ds, true, true, true);
-                                        cp = new ChartPanel(chart);
+//                                        chart = ChartFactory.createPieChart ("Répartitions des types d'appareils", ds, true, true, true);
+//                                        cp = new ChartPanel(chart);
 
-                                        this.jPanel5.add(cp, BorderLayout.EAST);
+//                                        this.jPanel5.add(cp, BorderLayout.EAST);
                                     }
                                     break;
                 case "NUAGE"   :
@@ -649,21 +770,30 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
                                     if(TABLES_CB.getSelectedItem() == "PERSONNEL")
                                     {
 
-                                        Vector donnees = (Vector) rep.getChargeUtile();
-                                        System.out.println("donnees pour NUAGES = " + donnees);
+                                        Vector data = (Vector) rep.getChargeUtile();
+                                        System.out.println("donnees pour NUAGES = " + data);
                                         XYSeries serieObs = new XYSeries("Relation vision-dextérité");
                                         
-                                        for(int i=0 ; i< donnees.size();i=i+2)
-                                        {
-                                            serieObs.add((double)donnees.get(i),(double)donnees.get(i+1)); //xi,yi
-                                        }
-                                        XYSeriesCollection dsxy = new XYSeriesCollection();
-                                        dsxy.addSeries(serieObs);
-                                        //Se fournir un JFreeChart
-                                        chart = ChartFactory.createScatterPlot ("Perception + dextérité manuelle", "réponse à un stimulus visuel", "dextérité manuelle",dsxy,PlotOrientation.VERTICAL ,true, true,false);
-                                        cp = new ChartPanel(chart);
+                                        List<Double> valeurs=new ArrayList<>();
+	
+                                        List<Double> valeurs1=new ArrayList<>();
 
-                                        this.jPanel5.add(cp, BorderLayout.EAST);
+                                        for(int i=0 ; i< data.size();i=i+2)
+                                        {
+                                            valeurs.add((double)data.get(i));
+                                            valeurs1.add((double)data.get(i+1));
+                                            //serieObs.add((double)data.get(i),(double)data.get(i+1)); //xi,yi
+                                        }
+//                                        XYSeriesCollection dsxy = new XYSeriesCollection();
+//                                        dsxy.addSeries(serieObs);
+                                        //Se fournir un JFreeChart
+//                                        chart = ChartFactory.createScatterPlot ("Perception + dextérité manuelle", "réponse à un stimulus visuel", "dextérité manuelle",dsxy,PlotOrientation.VERTICAL ,true, true,false);
+//                                        cp = new ChartPanel(chart);
+                                        NuagePoint line  = new NuagePoint("Graphique linéaire", valeurs, valeurs1, true);
+                                        graph_JP=line;
+                                        this.jPanel5.add(graph_JP,BorderLayout.EAST);    
+
+                                        //this.jPanel5.add(cp, BorderLayout.EAST);
                                     }
                                     
                                     break;
