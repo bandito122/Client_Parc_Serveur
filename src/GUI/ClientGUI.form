@@ -224,12 +224,12 @@
                       <EmptySpace max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
-                              <Component id="jButton3" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="90" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="1" attributes="0">
                               <Component id="Login_Bouton" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" pref="118" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
+                              <Component id="jButton3" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="107" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>
@@ -280,12 +280,12 @@
             </Component>
             <Component class="javax.swing.JTextField" name="TF_user">
               <Properties>
-                <Property name="text" type="java.lang.String" value="mastrobo"/>
+                <Property name="text" type="java.lang.String" value="bob"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="TF_password">
               <Properties>
-                <Property name="text" type="java.lang.String" value="456789"/>
+                <Property name="text" type="java.lang.String" value="bob"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="TF_passwordActionPerformed"/>
@@ -311,7 +311,7 @@
             </Component>
             <Component class="javax.swing.JButton" name="jButton3">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Get Session Key from KDC_Kerberos"/>
+                <Property name="text" type="java.lang.String" value="Get Access to Serveur_Analyse"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton3ActionPerformed"/>
@@ -341,7 +341,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
                           <Component id="Graph_CB" max="32767" attributes="0"/>
-                          <Component id="jButton2" alignment="0" min="-2" pref="141" max="-2" attributes="0"/>
+                          <Component id="DRAW_OK" alignment="0" min="-2" pref="141" max="-2" attributes="0"/>
                           <Component id="TABLES_CB" alignment="0" max="32767" attributes="0"/>
                           <Component id="jSpinner1" max="32767" attributes="0"/>
                       </Group>
@@ -368,19 +368,19 @@
                           <Component id="jSpinner1" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" pref="31" max="-2" attributes="0"/>
-                      <Component id="jButton2" min="-2" max="-2" attributes="0"/>
+                      <Component id="DRAW_OK" min="-2" max="-2" attributes="0"/>
                       <EmptySpace pref="183" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="javax.swing.JButton" name="jButton2">
+            <Component class="javax.swing.JButton" name="DRAW_OK">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Draw"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="DRAW_OKActionPerformed"/>
               </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel1">

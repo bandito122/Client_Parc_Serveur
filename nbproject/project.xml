@@ -21,7 +21,15 @@
                 <id>jar</id>
             </reference>
             <reference>
-                <foreign-project>Kerberos_KDC</foreign-project>
+                <foreign-project>JavaLibrary</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>Kerberos</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
@@ -30,6 +38,14 @@
             </reference>
             <reference>
                 <foreign-project>PROTOCOLE_DISMAP</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>PROTOCOLE_KERBEROS</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
